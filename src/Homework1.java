@@ -14,7 +14,7 @@ import javax.swing.event.TreeSelectionListener;
 import java.net.URL;
 import java.io.IOException;
 
-public class Homework1JTree extends JPanel
+public class Homework1 extends JPanel
         implements TreeSelectionListener {
 
     public static Tree binaryTree;
@@ -31,7 +31,7 @@ public class Homework1JTree extends JPanel
     //Optionally set the look and feel.
     private static boolean useSystemLookAndFeel = false;
 
-    public Homework1JTree() {
+    public Homework1() {
         super(new GridLayout(1, 0));
 
         //Create the nodes.
@@ -91,7 +91,7 @@ public class Homework1JTree extends JPanel
     }
 
     protected static ImageIcon createImageIcon(String path) {
-        java.net.URL imgURL = Homework1JTree.class.getResource(path);
+        java.net.URL imgURL = Homework1.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         } else {
@@ -187,7 +187,7 @@ public class Homework1JTree extends JPanel
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Add content to the window.
-        frame.add(new Homework1JTree());
+        frame.add(new Homework1());
 
         //Display the window.
         frame.pack();
