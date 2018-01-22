@@ -1,11 +1,206 @@
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
+import java.awt.*;
 import java.util.Stack;
 
-public class Homework1 {
+import javax.swing.*;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeSelectionModel;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+
+import java.net.URL;
+import java.io.IOException;
+
+public class Homework1JTree extends JPanel
+        implements TreeSelectionListener {
+
+    public static Tree binaryTree;
+    private JEditorPane htmlPane;
+    private JTree tree;
+    private URL helpURL;
+    private static boolean DEBUG = false;
+
+    //Optionally play with line styles.  Possible values are
+    //"Angled" (the default), "Horizontal", and "None".
+    private static boolean playWithLineStyle = false;
+    private static String lineStyle = "Horizontal";
+
+    //Optionally set the look and feel.
+    private static boolean useSystemLookAndFeel = false;
+
+    public Homework1JTree() {
+        super(new GridLayout(1, 0));
+
+        //Create the nodes.
+        DefaultMutableTreeNode top =
+                new DefaultMutableTreeNode(
+                        new NodeInfo(binaryTree.root.data,
+                                infix(binaryTree.root),
+                                calculate(binaryTree.root)));
+        createNodes(top);
+
+        //Create a tree that allows one selection at a time.
+        tree = new JTree(top);
+        tree.getSelectionModel().setSelectionMode
+                (TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+        //Listen for when the selection changes.
+        tree.addTreeSelectionListener(this);
+
+        if (playWithLineStyle) {
+            System.out.println("line style = " + lineStyle);
+            tree.putClientProperty("JTree.lineStyle", lineStyle);
+        }
+
+        //Create the scroll pane and add the tree to it.
+        JScrollPane treeView = new JScrollPane(tree);
+
+        //Create the HTML viewing pane.
+        htmlPane = new JEditorPane();
+        htmlPane.setEditable(false);
+        htmlPane.setFont(new Font("Consolas", 1, 24));
+        JScrollPane htmlView = new JScrollPane(htmlPane);
+
+        //Add the scroll panes to a split pane.
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setTopComponent(treeView);
+        splitPane.setBottomComponent(htmlView);
+
+        Dimension minimumSize = new Dimension(100, 50);
+        htmlView.setMinimumSize(minimumSize);
+        treeView.setMinimumSize(minimumSize);
+        splitPane.setDividerLocation(100);
+        splitPane.setPreferredSize(new Dimension(500, 300));
+
+        htmlPane.setText("Binary Tree Calculator \n" +
+                "Patsakorn Towtrakool 590610644");
+
+        ImageIcon nodeIcon = createImageIcon("middle.gif");
+        if (nodeIcon != null) {
+            DefaultTreeCellRenderer renderer =
+                    new DefaultTreeCellRenderer();
+            renderer.setClosedIcon(nodeIcon);
+            renderer.setOpenIcon(nodeIcon);
+            tree.setCellRenderer(renderer);
+        }
+        //Add the split pane to this panel.
+        add(splitPane);
+    }
+
+    protected static ImageIcon createImageIcon(String path) {
+        java.net.URL imgURL = Homework1JTree.class.getResource(path);
+        if (imgURL != null) {
+            return new ImageIcon(imgURL);
+        } else {
+            System.err.println("Couldn't find file: " + path);
+            return null;
+        }
+    }
+
+
+    /**
+     * Required by TreeSelectionListener interface.
+     */
+    public void valueChanged(TreeSelectionEvent e) {
+//Returns the last path element of the selection.
+//This method is useful only when the selection model allows a single selection.
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+                tree.getLastSelectedPathComponent();
+
+        if (node == null) {
+            //Nothing is selected.
+            return;
+        }
+
+        Object nodeInfo = node.getUserObject();
+
+        // TODO: Set text by infix(node n)
+        if (node.isLeaf()) {
+            NodeInfo n = (NodeInfo) nodeInfo;
+            htmlPane.setText(n.toString());
+        } else {
+            NodeInfo n = (NodeInfo) nodeInfo;
+            htmlPane.setText(n.infixValue + "=" + n.value);
+        }
+    }
+
+    public class NodeInfo {
+        public String data;
+        public String infixValue;
+        public int value;
+
+        public NodeInfo(String data, String infixValue, int value) {
+            this.data = data;
+            this.infixValue = infixValue;
+            this.value = value;
+        }
+
+        public String toString() {
+            return data;
+        }
+
+    }
+
+
+    public void inorderTraversal(DefaultMutableTreeNode top, Node n) {
+        if (n.leftChild != null) {
+            DefaultMutableTreeNode node1 =
+                    new DefaultMutableTreeNode(
+                            new NodeInfo(n.leftChild.toString(), infix(n.leftChild),
+                                    calculate(n.leftChild)));
+            top.add(node1);
+            inorderTraversal(node1, n.leftChild);
+        }
+
+        if (n.rightChild != null) {
+            DefaultMutableTreeNode node2 =
+                    new DefaultMutableTreeNode(
+                            new NodeInfo(n.rightChild.toString(), infix(n.rightChild),
+                                    calculate(n.rightChild)));
+            top.add(node2);
+            inorderTraversal(node2, n.rightChild);
+        }
+    }
+
+    private void createNodes(DefaultMutableTreeNode top) {
+        DefaultMutableTreeNode operator = null; // + - * /
+        DefaultMutableTreeNode operand = null; // number
+
+        inorderTraversal(top, binaryTree.root);
+    }
+
+    private static void createAndShowGUI() {
+        if (useSystemLookAndFeel) {
+            try {
+                UIManager.setLookAndFeel(
+                        UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                System.err.println("Couldn't use system look and feel.");
+            }
+        }
+
+        //Create and set up the window.
+        JFrame frame = new JFrame("Binary Tree Calculator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Add content to the window.
+        frame.add(new Homework1JTree());
+
+        //Display the window.
+        frame.pack();
+        frame.setVisible(true);
+    }
+
 
     public static void main(String[] args) {
         // Begin of arguments input sample
         if (args.length > 0) {
             String input = args[0];
+
+            // End of arguments input sample
 
             // TODO: Implement your project here
 
@@ -24,9 +219,14 @@ public class Homework1 {
                     st.push(parentNode);
                 }
             }
-            Tree tree = new Tree((Node) st.pop());
-            System.out.print(infix(tree.root) + "=" + calculate(tree.root));
+            binaryTree = new Tree((Node) st.pop());
+            System.out.println(infix(binaryTree.root) + "=" + calculate(binaryTree.root));
         }
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createAndShowGUI();
+            }
+        });
     }
 
     public static String infix(Node n) {
@@ -43,13 +243,14 @@ public class Homework1 {
         String s = "";
         if (n.leftChild == null && n.rightChild == null) {
             return n.data;
-        }
-        if (n.leftChild != null) {
-            s += "(" + inorder(n.leftChild);
-        }
-        s += n.data;
-        if (n.rightChild != null) {
-            s += inorder(n.rightChild) + ")";
+        } else {
+            if (n.leftChild != null) {
+                s += "(" + inorder(n.leftChild);
+            }
+            s += n.data;
+            if (n.rightChild != null) {
+                s += inorder(n.rightChild) + ")";
+            }
         }
         return s;
     }
@@ -72,7 +273,8 @@ public class Homework1 {
         }
     }
 
-    public static class Node {
+
+    public static class Node{
 
         public Node leftChild, rightChild;
         public String data;
@@ -93,6 +295,10 @@ public class Homework1 {
             this.data = data;
         }
 
+        @Override
+        public String toString() {
+            return data;
+        }
     }
 
     public static class Tree {
